@@ -24,14 +24,17 @@ use OC\Core\Command\Integrity\SignApp;
 use OC\Core\Command\User\SyncBackend;
 use OC\IntegrityCheck\Checker;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
+use OC\User\Account;
 use OC\User\AccountMapper;
 use OCP\IConfig;
 use OCP\ILogger;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserBackend;
 use OCP\IUserManager;
 use OCP\UserInterface;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Test\TestCase;
 
@@ -257,5 +260,18 @@ class SyncBackendTest extends TestCase {
 
 		$this->assertEquals(0, static::invokePrivate($this->command, 'execute', [$inputInterface, $outputInterface]));
 	}
+
+	public function testReEnableAction() {
+		// Test account is re-enabled
+		$nullOutput = new NullOutput();
+		$account = $this->createMock(Account::class);
+		$reappearedUsers = ['test' => $account];
+		$user = $this->createMock(IUser::class);
+		$user->expects($this->once())->method('isEnabled')->willReturn(false);
+		$user->expects($this->once())->method('setEnabled')->with(true);
+		$this->userManager->expects($this->once())->method('get')->willReturn($user);
+		static::invokePrivate($this->command, 'reEnableUsers', [$reappearedUsers, $nullOutput]);
+	}
+
 
 }
